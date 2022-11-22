@@ -17,7 +17,8 @@ class DependenciesGraph {
 private:
 	//map data structure for dependencies
 	std::map <std::string, std::vector<std::string>> _dependencyMap;
-	
+	//sets which run O(log n) time vs(vector O(n)) which is much more efficient with large numbers of elements and prevents duplicates when iterating
+	std::set <std::string> _completelist;
 public:
 	//adding dependencies for token
 	void addDependency(const std::string& token, const std::vector<std::string>& dependencies) {
@@ -26,7 +27,7 @@ public:
 
 	//printing map for debug
 	void printMap2() const {
-		std::cout << "mymap contains:\n";
+		std::cout << "My map contains:\n";
 		for (const auto& [key, value] : _dependencyMap) {
 			std::cout << key << ": ";
 			for (const auto& dep : value) {
@@ -36,38 +37,39 @@ public:
 		}
 	}
 
-	// getting direct dependencies and running iteration on transitive dependencies (returns full dependency list)
-	std::string tokenDependency(std::string const& token) {
-		//sets which run O(log n) time vs(vector O(n)) which is much more efficient with large numbers of elements and prevents duplicates when iterating
-		std::set <std::string> completelist;
-		//adding direct dependencies 
-		completelist.insert(_dependencyMap[token].begin(), _dependencyMap[token].end());
-
-
-		//scan for transitive dependencies
-		std::set<std::string>::iterator it = completelist.begin();
-		while (it != completelist.end())
-		{
-			//guard to block circular dependency
-			if (*it != token)
-			{
-				//There was memory leak when no "key" found inside map. Call map.at() was forbidding compiler to create key with null value
-				std::copy(_dependencyMap[(*it)].begin(), _dependencyMap[(*it)].end(), std::inserter(completelist, completelist.end()));
-				++it;
+	void recurseCheck(const std::string& key, const std::string& token) {
+			_completelist.insert(key);
+			for (const std::string& it : _dependencyMap[key]) {
+				if (it != token) {
+					recurseCheck(it, token);
+				}
+				else {
+					std::cout << "Circular dependency found! Provide correct dependencies. \n";
+				}
 			}
-			else
-			{
+	}
+
+	// getting direct dependencies and running iteration on transitive dependencies (returns full dependency list)
+	std::string tokenDependency(const std::string& token) {
+		
+		//Iterating direct dependencies
+		_completelist.clear();
+		for (const std::string& it : _dependencyMap[token]) {
+			if (it != token) {
+				recurseCheck(it, token);
+			}
+			else {
 				return "Circular dependency found! Provide correct dependencies.";
 			}
 		}
+		
 		//creating dependencies string
 		std::string finalString;
-		for (const std::string& i : completelist)
-			finalString += i + " ";
+		for (const std::string& it : _completelist)
+			finalString += it + " ";
 		return token + ": " + finalString;
 	}
 };
-
 
 int main()
 {
@@ -81,7 +83,7 @@ int main()
 	dataTree.addDependency("D", { "A", "F" });
 	dataTree.addDependency("E", { "F" });
 	dataTree.addDependency("F", { "H" });
-	dataTree.printMap2();
+	//dataTree.printMap2();
 	std::cout << dataTree.tokenDependency("A") << " \n";
 	std::cout << dataTree.tokenDependency("B") << " \n";
 	std::cout << dataTree.tokenDependency("C") << " \n";
@@ -94,7 +96,7 @@ int main()
 	dataTree2.addDependency("A", { "B" });
 	dataTree2.addDependency("B", { "C" });
 	dataTree2.addDependency("C", { "A" });
-	dataTree2.printMap2();
+	//dataTree2.printMap2();
 	std::cout << dataTree2.tokenDependency("A") << " \n";
 	std::cout << dataTree2.tokenDependency("B") << " \n";
 	std::cout << dataTree2.tokenDependency("C") << " \n";
@@ -103,7 +105,6 @@ int main()
 	dataTree.addDependency("I", { "J" });
 	dataTree.addDependency("J", { "A" });
 	std::cout << dataTree.tokenDependency("I") << " \n";
-	dataTree.printMap2();
 
 	std::cin >> holder;
 	return 0;
