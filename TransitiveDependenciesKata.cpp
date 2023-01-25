@@ -1,5 +1,6 @@
 /*
-Transitive Dependencies Kata
+"Transitive Dependencies Kata" from:
+http://codekata.com/kata/kata18-transitive-dependencies/
 author: Daniel Kiska
 date: 16.11.2022
 */
@@ -51,7 +52,6 @@ public:
 
 	// getting direct dependencies and running iteration on transitive dependencies (returns full dependency list)
 	std::string tokenDependency(const std::string& token) {
-		
 		//Iterating direct dependencies
 		_completelist.clear();
 		for (const std::string& it : _dependencyMap[token]) {
@@ -62,7 +62,6 @@ public:
 				return "Circular dependency found! Provide correct dependencies.";
 			}
 		}
-		
 		//creating dependencies string
 		std::string finalString;
 		for (const std::string& it : _completelist)
